@@ -13,5 +13,5 @@ deploy:
   script:
     - mvn package
     - export PORT=5000
-    - fuser -k 5000
-    - nohup sh target/bin/simplewebapp > output.txt & fg
+    - sudo fuser -k target/bin/simplewebapp
+    - sudo nohup target/bin/simplewebapp > output.txt 2>&1 &
