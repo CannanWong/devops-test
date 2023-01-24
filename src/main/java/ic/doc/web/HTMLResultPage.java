@@ -35,16 +35,6 @@ public class HTMLResultPage implements Page {
             writer.println("<p>" + answer.replace("\n", "<br>") + "</p>");
         }
 
-        writer.println(
-		"<form>" + 
-			"<input type=\"radio\" id=\"html\" name=\"type\" value=\"html\">" +
-			"<label for=\"html\">HTML</label><br>" + 
-			"<input type=\"radio\" id=\"md\" name=\"type\" value=\"md\">" +
-		       	"<label for=\"md\">MarkDown</label><br>" + 
-			"<input type=\"submit\" value=\"Submit\">" + 
-		"</form>"
-																        );
-
         writer.println("<p><a href=\"/\">Back to Search Page</a></p>");
 
         // Footer
@@ -53,7 +43,7 @@ public class HTMLResultPage implements Page {
     
     }
 
-    public File downloadResults() throws IOException {
+    public void downloadResults() throws IOException {
 	 File results = new File("results.md");
       	 FileWriter writer = new FileWriter("results.md");
      	 if (answer == null || answer.isEmpty()) {
@@ -62,6 +52,5 @@ public class HTMLResultPage implements Page {
    	 else {
         	writer.write("# " + query + "\n" + answer);
       	 }	
-    	 return results;
     }
 }

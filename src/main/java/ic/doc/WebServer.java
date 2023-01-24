@@ -30,8 +30,16 @@ public class WebServer {
             if (query == null) {
                 new IndexPage().writeTo(resp);
             } else {
-                new HTMLResultPage(query, new QueryProcessor().process(query)).writeTo(resp);
-            }
+                HTMLResultPage resultPage = new HTMLResultPage(query, new QueryProcessor().process(query));
+            	String type = req.getParameter("type");
+		if (type == "md") {
+			resultPage.downloadResults();
+			resultPage.generatePdf();
+			new IndexPage().writeTo(resp);
+		} else {
+			resultPage.writeTo(resp);
+		}
+	    }
         }
     }
 
