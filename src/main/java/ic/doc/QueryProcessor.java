@@ -17,6 +17,18 @@ public class QueryProcessor {
                            "his works of hard science fiction and popular science. \n");
             results.append(System.lineSeparator());
         }
-        return results.toString();
+        if (query.toLowerCase().contains("darwin")) {
+		results.append("Charles Robert Darwin (12 February 1809 – 19 April 1882) was an\n" +
+			"biologist, geologist and English naturalist widely known for\n" +
+			"his contributions to evolutionary biology. \n");
+		results.append(System.lineSeparator());
+	}
+	if (query.toLowerCase().contains("cook")) {
+		results.append("James Cook (7 November 1728 – 14 February 1779) was a British\n" +
+				"cartographer, explorer and navigator, famous for his three\n" +
+				"voyages between 1768 and 1779. \n");
+		results.append(System.lineSeparator());
+	}
+	return results.toString();
     }
 }

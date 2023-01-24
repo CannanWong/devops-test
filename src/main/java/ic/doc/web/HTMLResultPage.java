@@ -32,6 +32,16 @@ public class HTMLResultPage implements Page {
             writer.println("<p>" + answer.replace("\n", "<br>") + "</p>");
         }
 
+        writer.println(
+		"<form>" + 
+			"<input type=\"radio\" id=\"html\" name=\"html\" value=\"html\">" +
+			"<label for=\"html\">HTML</label><br>" + 
+			"<input type=\"radio\" id=\"md\" name=\"md\" value=\"md\">" +
+		       	"<label for=\"md\">MarkDown</label><br>" + 
+			"<input type=\"submit\" value=\"Submit\">" + 
+		"</form>"
+																        );
+
         writer.println("<p><a href=\"/\">Back to Search Page</a></p>");
 
         // Footer
