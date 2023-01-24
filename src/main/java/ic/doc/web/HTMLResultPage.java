@@ -37,9 +37,9 @@ public class HTMLResultPage implements Page {
 
         writer.println(
 		"<form>" + 
-			"<input type=\"radio\" id=\"html\" name=\"html\" value=\"html\">" +
+			"<input type=\"radio\" id=\"html\" name=\"type\" value=\"html\">" +
 			"<label for=\"html\">HTML</label><br>" + 
-			"<input type=\"radio\" id=\"md\" name=\"md\" value=\"md\">" +
+			"<input type=\"radio\" id=\"md\" name=\"type\" value=\"md\">" +
 		       	"<label for=\"md\">MarkDown</label><br>" + 
 			"<input type=\"submit\" value=\"Submit\">" + 
 		"</form>"
