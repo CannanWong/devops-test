@@ -5,6 +5,7 @@ import ic.doc.web.IndexPage;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ public class WebServer {
     server.start();
   }
 
+  @WebServlet("/download")
   static class Website extends HttpServlet {
 
     @Override
@@ -39,25 +41,27 @@ public class WebServer {
         if (type == "md") {
           resultPage.downloadResults();
           resp.setContentType("text/markdown");
-          download(resp);
+          download(resp, "results.md");
           new IndexPage().writeTo(resp);
         }
         else if (type == "pdf"){
+          resultPage.downloadResults();
           resultPage.generatePdf();
           resp.setContentType("application/pdf");
-          download(resp);
+          download(resp, "results.pdf");
           new IndexPage().writeTo(resp);
         } else {
           resultPage.writeTo(resp);
         }
       }
     }
-    
-    private void download(HttpServletResponse resp) throws IOException {
+
+
+    private void download(HttpServletResponse resp, String filename) throws IOException {
       PrintWriter output = resp.getWriter();
       // resp.setHeader("Content-disposition", "attachment; filename=results.pdf");
 
-      FileInputStream inputStream = new FileInputStream("results.pdf");
+      FileInputStream inputStream = new FileInputStream(filename);
       int input = inputStream.read();
       while (input != -1) {
         output.write(input);
@@ -69,10 +73,11 @@ public class WebServer {
     }
   }
 
-  
+
 
   public static void main(String[] args) throws Exception {
     new WebServer();
   }
 }
+
 
