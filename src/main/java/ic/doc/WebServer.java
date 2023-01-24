@@ -38,13 +38,12 @@ public class WebServer {
         /*download type*/
         HTMLResultPage resultPage = new HTMLResultPage(query, new QueryProcessor().process(query));
         String type = req.getParameter("type");
-        if (type == "md") {
+        if (type.equals("md")) {
           resultPage.downloadResults();
           resp.setContentType("text/markdown");
           download(resp, "results.md");
           new IndexPage().writeTo(resp);
-        }
-        else if (type == "pdf"){
+        } else if (type.equals("pdf")) {
           resultPage.downloadResults();
           resultPage.generatePdf();
           resp.setContentType("application/pdf");
@@ -72,7 +71,6 @@ public class WebServer {
       output.close();
     }
   }
-
 
 
   public static void main(String[] args) throws Exception {
