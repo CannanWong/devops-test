@@ -14,3 +14,8 @@ deploy:
     - mvn package
     - export PORT=5000
     - sudo nohup target/bin/simplewebapp > output.txt 2>&1 &
+
+deploy_to_heroku:
+  stage: deploy
+  script: 
+    - dpl --provider=heroku --app=lst2020-simplewebapp --api-key=heroku_api_key
