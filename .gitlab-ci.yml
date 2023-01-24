@@ -18,4 +18,4 @@ deploy:
 deploy_to_heroku:
   stage: deploy
   script: 
-    - dpl --provider=heroku --app=lst2020-simplewebapp --api-key=heroku_api_key
+    - dpl --provider=heroku --app=lst2020-simplewebapp --api-key=c9e71872-c9f2-42ec-848e-9db399acd214
