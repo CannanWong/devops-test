@@ -3,6 +3,9 @@ package ic.doc.web;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.File;
+import java.io.FileWriter;
+
 
 public class HTMLResultPage implements Page {
 
@@ -47,5 +50,18 @@ public class HTMLResultPage implements Page {
         // Footer
         writer.println("</body>");
         writer.println("</html>");
+    
+    }
+
+    public File downloadResults() throws IOException {
+	 File results = new File("results.md");
+      	 FileWriter writer = new FileWriter("results.md");
+     	 if (answer == null || answer.isEmpty()) {
+     		 writer.write("# Sorry\nSorry, we didn't understand " + query + "");
+     	 }
+   	 else {
+        	writer.write("# " + query + "\n" + answer);
+      	 }	
+    	 return results;
     }
 }
