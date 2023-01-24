@@ -53,4 +53,9 @@ public class HTMLResultPage implements Page {
         	writer.write("# " + query + "\n" + answer);
       	 }	
     }
+
+    public void generatePdf() throws IOException {
+	 var processBuilder = new ProcessBuilder();
+	 processBuilder.command("pandoc", "results.md", "--pdf-engine=xelatex", "-o", "results.pdf");
+   }
 }
