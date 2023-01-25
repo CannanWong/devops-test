@@ -13,7 +13,8 @@ deploy:
   script:
     - mvn package
     - export PORT=5000
-    - sudo fuser -k 5000/tcp
+    - ps -eaf
+    - sudo pkill simplewebapp
     - sudo nohup target/bin/simplewebapp > output.txt 2>&1 &
 
 deploy_to_heroku:
