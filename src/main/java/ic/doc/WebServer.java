@@ -73,21 +73,22 @@ public class WebServer {
 
     private void download(HttpServletResponse resp, String query, String type)
         throws IOException, InterruptedException {
+      String lookUp = query;
+      if (query.length() < 3) {
+        query = "Sorry";
+      }
+      
       resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type + "\"");
       File temp;
 
-      String result = new QueryProcessor().process(query);
+      String result = new QueryProcessor().process(lookUp);
       if (result.equals("")) {
         if (type.equals("html")) {
-          result ="\nSorry, we didn't understand <em>" + query + "</em>";
+          result ="\nSorry, we didn't understand <em>" + lookUp + "</em>";
         }else {
-          result ="\nSorry, we didn't understand *" + query + "*";
+          result ="\nSorry, we didn't understand *" + lookUp + "*";
         }
 
-      }
-
-      if (query == null || query == "" || query.length() < 3) {
-        query = "Sorry";
       }
 
       if (type.equals("html")) {
