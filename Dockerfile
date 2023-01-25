@@ -7,6 +7,6 @@ RUN apt-get -y install pandoc
 COPY . .
 
 RUN mvn -f pom.xml package
-RUN export PORT=5001
+RUN export PORT=5000
 
 CMD ["sh", "target/bin/simplewebapp"]
