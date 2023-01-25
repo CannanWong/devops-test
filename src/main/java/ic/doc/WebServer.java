@@ -34,10 +34,7 @@ public class WebServer {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
       /*query*/
       String query = req.getParameter("q");
-      if (query == null) {
-        new IndexPage().writeTo(resp);
-        return;
-      }
+
       String type = req.getParameter("type");
       if (Objects.isNull(type)) {
         new HTMLResultPage(query, new QueryProcessor().process(query)).writeTo(resp);

@@ -8,13 +8,13 @@ test:
   script:
     - mvn test
 
-deploy:
+deploy_to_vm:
   stage: deploy
   script:
     - mvn package
     - export PORT=5000
     - sudo nohup target/bin/simplewebapp > output.txt 2>&1 &
-
+ 
 deploy_to_heroku:
   stage: deploy
   script: 
