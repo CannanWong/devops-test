@@ -76,16 +76,25 @@ public class WebServer {
       resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type + "\"");
       File temp;
 
+      if (query == null) {
+        query = "invalid_input";
+      }
+
+      String result = new QueryProcessor().process(query);
+      if (result.equals("")) {
+        result ="Sorry, we didn't understand " + query;
+      }
+
       if (type.equals("html")) {
         temp = File.createTempFile(query, ".html");
         FileWriter writer = new FileWriter(temp);
-        new HTMLResultPage(query, new QueryProcessor().process(query)).downloadResults(writer);
+        new HTMLResultPage(query,result).downloadResults(writer);
         writer.close();
       }else {
         temp = File.createTempFile(query, ".md");
         FileWriter writer = new FileWriter(temp);
         writer.write("#" + query + "\n");
-        writer.write(new QueryProcessor().process(query));
+        writer.write(result);
         writer.close();
 
         if (type.equals("pdf")) {
