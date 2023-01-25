@@ -1,60 +1,130 @@
-package ic.doc.web;
+package ic.doc;
 
+import ic.doc.web.HTMLResultPage;
+import ic.doc.web.IndexPage;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Objects;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
-public class HTMLResultPage implements Page {
+public class WebServer {
 
-  private final String query;
-  private final String answer;
+  public WebServer() throws Exception {
+    Server server = new Server(Integer.valueOf(System.getenv("PORT")));
 
-  public HTMLResultPage(String query, String answer) {
-    this.query = query;
-    this.answer = answer;
+    ServletHandler handler = new ServletHandler();
+    handler.addServletWithMapping(new ServletHolder(new Website()), "/*");
+    server.setHandler(handler);
+
+    server.start();
   }
 
-  public void writeTo(HttpServletResponse resp) throws IOException {
-    resp.setContentType("text/html");
-    PrintWriter writer = resp.getWriter();
+  @WebServlet("/download")
+  static class Website extends HttpServlet {
 
-    // Header
-    writer.println("<html>");
-    writer.println("<head><title>" + query + "</title></head>");
-    writer.println("<body>");
-
-    // Content
-    if (answer == null || answer.isEmpty()) {
-      writer.println("<h1>Sorry</h1>");
-      writer.print("<p>Sorry, we didn't understand <em>" + query + "</em></p>");
-    } else {
-      writer.println("<h1>" + query + "</h1>");
-      writer.println("<p>" + answer.replace("\n", "<br>") + "</p>");
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+      /*query*/
+      String query = req.getParameter("q");
+      if (query == null) {
+        new IndexPage().writeTo(resp);
+        return;
+      }
+      String type = req.getParameter("type");
+      if (Objects.isNull(type)) {
+        new HTMLResultPage(query, new QueryProcessor().process(query)).writeTo(resp);
+      } else {
+        /*download type*/
+        if (type.equals("html")) {
+          resp.setContentType("text/html");
+          try {
+            download(resp, query, "html");
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } else if (type.equals("md")) {
+          resp.setContentType("text/markdown");
+          try {
+            download(resp, query, "md");
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } else if (type.equals("pdf")) {
+          resp.setContentType("application/pdf");
+          try {
+            download(resp, query, "pdf");
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } else {
+          new HTMLResultPage(query, new QueryProcessor().process(query)).writeTo(resp);
+        }
+      }
     }
 
-    writer.println("<p><a href=\"/\">Back to Search Page</a></p>");
 
-    // Footer
-    writer.println("</body>");
-    writer.println("</html>");
-  }
+    private void download(HttpServletResponse resp, String query, String type)
+        throws IOException, InterruptedException {
+      resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type + "\"");
+      File temp;
 
-  public void downloadResults(FileWriter writer) throws IOException {
-    writer.write("<html>" +
-        "<head><title>\"" + query + "\"</title></head>" +
-        "<body>");
+      if (query == null || query == "" || query.length() < 3) {
+        query = "Sorry";
+      }
 
-    if (answer == null || answer.isEmpty()) {
-      writer.write("<p>Sorry\nSorry, we didn't understand " + query + "</em></p>");
-    } else {
-      writer.write("<h1>" + query + "</h1>");
-      writer.write("<p>" + answer.replace("\n", "<br>") + "</p>");
+      String result = new QueryProcessor().process(query);
+      if (result.equals("")) {
+        result ="\nSorry, we didn't understand " + query;
+      }
+
+      if (type.equals("html")) {
+        temp = File.createTempFile(query, ".html");
+        FileWriter writer = new FileWriter(temp);
+        new HTMLResultPage(query,result).downloadResults(writer);
+        writer.close();
+      }else {
+        temp = File.createTempFile(query, ".md");
+        FileWriter writer = new FileWriter(temp);
+        writer.write("# " + query + "\n");
+        writer.write(result);
+        writer.close();
+
+        if (type.equals("pdf")) {
+          File tempInput = temp;
+          temp = File.createTempFile( query, ".pdf");
+          Process pdfConverter = new ProcessBuilder("pandoc", "-f",
+              "markdown", tempInput.getAbsolutePath(), "-o",
+              temp.getAbsolutePath()).start();
+
+          int exitCode = pdfConverter.waitFor();
+          if (exitCode != 0) {
+            System.err.println("cannot create pdf");
+            return;
+          }
+        }
+      }
+
+      FileInputStream inputStream = new FileInputStream(temp);
+      byte[] bytes = inputStream.readAllBytes();
+      inputStream.close();
+
+      resp.getOutputStream().write(bytes);
+      resp.getOutputStream().close();
     }
-    // Footer
-    writer.write("</body>");
-    writer.write("</html>");
   }
 
+
+  public static void main(String[] args) throws Exception {
+    new WebServer();
+  }
 }
+
 
