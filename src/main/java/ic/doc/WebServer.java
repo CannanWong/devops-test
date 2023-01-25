@@ -2,7 +2,9 @@ package ic.doc;
 
 import ic.doc.web.HTMLResultPage;
 import ic.doc.web.IndexPage;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -39,16 +41,21 @@ public class WebServer {
         HTMLResultPage resultPage = new HTMLResultPage(query, new QueryProcessor().process(query));
         String type = req.getParameter("type");
         if (type.equals("md")) {
-          resultPage.downloadResults();
           resp.setContentType("text/markdown");
-          download(resp, "results.md");
-          new IndexPage().writeTo(resp);
+          try {
+            download(resp, query, "md");
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
         } else if (type.equals("pdf")) {
-          resultPage.downloadResults();
           resultPage.generatePdf();
           resp.setContentType("application/pdf");
-          download(resp, "results.pdf");
-          new IndexPage().writeTo(resp);
+          try {
+            download(resp, query, "pdf");
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          //new IndexPage().writeTo(resp);
         } else {
           resultPage.writeTo(resp);
         }
@@ -56,11 +63,28 @@ public class WebServer {
     }
 
 
-    private void download(HttpServletResponse resp, String filename) throws IOException {
+    private void download(HttpServletResponse resp, String query, String type)
+        throws IOException, InterruptedException {
       PrintWriter output = resp.getWriter();
-      // resp.setHeader("Content-disposition", "attachment; filename=results.pdf");
+      resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type +"\"");
 
-      FileInputStream inputStream = new FileInputStream(filename);
+      File temp = File.createTempFile(query, "." + type);
+      FileWriter writer = new FileWriter(temp);
+
+      if (type.equals("md")) {
+        writer.write("#" + query + "\n");
+        writer.write(new QueryProcessor().process(query));
+      } else if (type.equals("pdf")) {
+        Process pdfConverter = new ProcessBuilder("pandoc", "-f",
+                                          "markdown", temp.getAbsolutePath(), "-o",
+                                            temp.getAbsolutePath()).start();
+        int exitCode = pdfConverter.waitFor();
+        if (exitCode != 0) {
+          System.err.println("cannot create pdf");
+        }
+      }
+
+      FileInputStream inputStream = new FileInputStream(query);
       int input = inputStream.read();
       while (input != -1) {
         output.write(input);
