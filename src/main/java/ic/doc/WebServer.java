@@ -76,22 +76,27 @@ public class WebServer {
       resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type + "\"");
       File temp;
 
+      String result = new QueryProcessor().process(query);
+      if (result.equals("")) {
+        if (type.equals("html")) {
+          result ="\nSorry, we didn't understand <em>" + query + "</em>";
+        }else {
+          result ="\nSorry, we didn't understand *" + query + "*";
+        }
+
+      }
+
       if (query == null || query == "" || query.length() < 3) {
         query = "Sorry";
       }
 
-      String result = new QueryProcessor().process(query);
-      if (result.equals("")) {
-        result ="\nSorry, we didn't understand " + query;
-      }
-
       if (type.equals("html")) {
-        temp = File.createTempFile(query, ".html");
+        temp = File.createTempFile("result", ".html");
         FileWriter writer = new FileWriter(temp);
         new HTMLResultPage(query,result).downloadResults(writer);
         writer.close();
       }else {
-        temp = File.createTempFile(query, ".md");
+        temp = File.createTempFile("result", ".md");
         FileWriter writer = new FileWriter(temp);
         writer.write("# " + query + "\n");
         writer.write(result);
@@ -99,7 +104,7 @@ public class WebServer {
 
         if (type.equals("pdf")) {
           File tempInput = temp;
-          temp = File.createTempFile( query, ".pdf");
+          temp = File.createTempFile( "result", ".pdf");
           Process pdfConverter = new ProcessBuilder("pandoc", "-f",
               "markdown", tempInput.getAbsolutePath(), "-o",
               temp.getAbsolutePath()).start();
