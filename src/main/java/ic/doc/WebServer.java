@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Objects;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -36,11 +37,21 @@ public class WebServer {
       String query = req.getParameter("q");
       if (query == null) {
         new IndexPage().writeTo(resp);
+        return;
+      }
+      String type = req.getParameter("type");
+      if (Objects.isNull(type)) {
+        new HTMLResultPage(query, new QueryProcessor().process(query)).writeTo(resp);
       } else {
         /*download type*/
-        HTMLResultPage resultPage = new HTMLResultPage(query, new QueryProcessor().process(query));
-        String type = req.getParameter("type");
-        if (type.equals("md")) {
+        if (type.equals("html")) {
+          resp.setContentType("text/html");
+          try {
+            download(resp, query, "html");
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } else if (type.equals("md")) {
           resp.setContentType("text/markdown");
           try {
             download(resp, query, "md");
@@ -48,16 +59,14 @@ public class WebServer {
             e.printStackTrace();
           }
         } else if (type.equals("pdf")) {
-          resultPage.generatePdf();
           resp.setContentType("application/pdf");
           try {
             download(resp, query, "pdf");
           } catch (InterruptedException e) {
             e.printStackTrace();
           }
-          //new IndexPage().writeTo(resp);
         } else {
-          resultPage.writeTo(resp);
+          new HTMLResultPage(query, new QueryProcessor().process(query)).writeTo(resp);
         }
       }
     }
@@ -66,34 +75,44 @@ public class WebServer {
     private void download(HttpServletResponse resp, String query, String type)
         throws IOException, InterruptedException {
       PrintWriter output = resp.getWriter();
-      resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type +"\"");
+      resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type + "\"");
+      File temp = File.createTempFile(query, ".html");
 
-      File temp = File.createTempFile(query, "." + type);
-      FileWriter writer = new FileWriter(temp);
-
-      if (type.equals("md")) {
+      if (type.equals("html")) {
+         temp = File.createTempFile(query, ".html");
+        FileWriter writer = new FileWriter(temp);
+        new HTMLResultPage(query, new QueryProcessor().process(query)).downloadResults(writer);
+        writer.close();
+      }else if (type.equals("md") || type.equals("pdf")) {
+        temp = File.createTempFile(query, ".md");
+        FileWriter writer = new FileWriter(temp);
         writer.write("#" + query + "\n");
         writer.write(new QueryProcessor().process(query));
-      } else if (type.equals("pdf")) {
-        Process pdfConverter = new ProcessBuilder("pandoc", "-f",
-                                          "markdown", temp.getAbsolutePath(), "-o",
-                                            temp.getAbsolutePath()).start();
-        int exitCode = pdfConverter.waitFor();
-        if (exitCode != 0) {
-          System.err.println("cannot create pdf");
+        writer.close();
+
+        if (type.equals("pdf")) {
+          File tempInput = temp;
+          temp = File.createTempFile( query, ".pdf\"");
+          Process pdfConverter = new ProcessBuilder("pandoc", "-f",
+              "markdown", tempInput.getAbsolutePath(), "-o",
+              temp.getAbsolutePath()).start();
+
+          int exitCode = pdfConverter.waitFor();
+          if (exitCode != 0) {
+            System.err.println("cannot create pdf");
+            return;
+          }
         }
       }
 
-      FileInputStream inputStream = new FileInputStream(query);
-      int input = inputStream.read();
-      while (input != -1) {
-        output.write(input);
-        input = inputStream.read();
-      }
-
+      FileInputStream inputStream = new FileInputStream(temp);
+      byte[] bytes = inputStream.readAllBytes();
       inputStream.close();
-      output.close();
+
+      resp.getOutputStream().write(bytes);
+      resp.getOutputStream().close();
     }
+
   }
 
 
