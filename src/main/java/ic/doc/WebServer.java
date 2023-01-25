@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Objects;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -74,16 +73,15 @@ public class WebServer {
 
     private void download(HttpServletResponse resp, String query, String type)
         throws IOException, InterruptedException {
-      PrintWriter output = resp.getWriter();
       resp.setHeader("Content-disposition", "attachment; filename=\"" + query + "." + type + "\"");
-      File temp = File.createTempFile(query, ".html");
+      File temp;
 
       if (type.equals("html")) {
-         temp = File.createTempFile(query, ".html");
+        temp = File.createTempFile(query, ".html");
         FileWriter writer = new FileWriter(temp);
         new HTMLResultPage(query, new QueryProcessor().process(query)).downloadResults(writer);
         writer.close();
-      }else if (type.equals("md") || type.equals("pdf")) {
+      }else {
         temp = File.createTempFile(query, ".md");
         FileWriter writer = new FileWriter(temp);
         writer.write("#" + query + "\n");
@@ -112,7 +110,6 @@ public class WebServer {
       resp.getOutputStream().write(bytes);
       resp.getOutputStream().close();
     }
-
   }
 
 
