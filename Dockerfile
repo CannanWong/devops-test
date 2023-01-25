@@ -1,13 +1,12 @@
 FROM openjdk:11-jre-slim
+FROM maven
 
-RUN sudo apt install maven
-RUN sudo apt-get install pandoc
+RUN apt-get update
+RUN apt-get -y install pandoc
 
-COPY lst20/devops-java/src src
-COPY lst20/devops-java/pom.xml pom.xml
-COPY lst20/devops-java/system.properties system.properties
+COPY . .
 
-RUN mvn package
+RUN mvn -f pom.xml package
+RUN export PORT=5001
 
-RUN export PORT=5000
-RUN sudo nohup target/bin/simplewebapp > output.txt 2>&1 &
+CMD ["sh", "target/bin/simplewebapp"]
