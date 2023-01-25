@@ -90,7 +90,7 @@ public class WebServer {
 
         if (type.equals("pdf")) {
           File tempInput = temp;
-          temp = File.createTempFile( query, ".pdf\"");
+          temp = File.createTempFile( query, ".pdf");
           Process pdfConverter = new ProcessBuilder("pandoc", "-f",
               "markdown", tempInput.getAbsolutePath(), "-o",
               temp.getAbsolutePath()).start();

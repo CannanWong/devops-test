@@ -29,8 +29,6 @@ public class QueryProcessor {
                 "cartographer, explorer and navigator, famous for his three\n" +
                 "voyages between 1768 and 1779. \n");
             results.append(System.lineSeparator());
-        } else {
-            results.append("Sorry, we didn't understand " + query);
         }
         return results.toString();
     }
